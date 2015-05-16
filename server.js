@@ -77,6 +77,11 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var async = require('async');
+var request = require('request');
+var xml2js = require('xml2js');
+var _ = require('lodash');
+
 var app = express();
 
 app.set('port', process.env.PORT || 3000);
@@ -85,6 +90,101 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ========== Query and parse the TVDB API ==========
+app.post('/api/shows', function(req, res, next) {
+  var apiKey = '6BD9F0C2B5363FEB';
+  // xml2js parser to normalize all tags to lowercase
+  // and disable conversion to arrays when there is only one child element.
+  var parser = xml2js.Parser({
+    explicitArray: false,
+    normalizeTags: true
+  });
+  // exmaple: Breaking Bad it will be converted to breaking_bad
+  var seriesName = req.body.showName
+    .toLowerCase()
+    .replace(/ /g, '_')
+    .replace(/[^\w-]+/g, '');
+
+  // async to manage multiple asynchronous operations
+  async.waterfall([
+    // First: Get the Show ID given the Show Name and pass it on to the next function.
+    function(callback) {
+      request.get('http://thetvdb.com/api/GetSeries.php?seriesname=' + seriesName, function(error, response, body) {
+        if (error) return next(error);
+        parser.parseString(body, function(err, result) {
+          // validation check to see if the seriesid exists.
+          if (!result.data.series) {
+            return res.send(404, { message: req.body.showName + ' was not found.' });
+          }
+          var seriesId = result.data.series.seriesid || result.data.series[0].seriesid;
+          callback(err, seriesId);
+        });
+      });
+    },
+    // Second: Get the show information using the Show ID from previous step and pass the new show object on to the next function.
+    function(seriesId, callback) {
+      request.get('http://thetvdb.com/api/' + apiKey + '/series/' + seriesId + '/all/en.xml', function(error, response, body) {
+        if (error) return next(error);
+        parser.parseString(body, function(err, result) {
+          var series = result.data.series;
+          var episodes = result.data.episode;
+          var show = new Show({
+            _id: series.id,
+            name: series.seriesname,
+            airsDayOfWeek: series.airs_dayofweek,
+            airsTime: series.airs_time,
+            firstAired: series.firstaired,
+            genre: series.genre.split('|').filter(Boolean),
+            network: series.network,
+            overview: series.overview,
+            rating: series.rating,
+            ratingCount: series.ratingcount,
+            runtime: series.runtime,
+            status: series.status,
+            poster: series.poster,
+            episodes: []
+          });
+          _.each(episodes, function(episode) {
+            show.episodes.push({
+              season: episode.seasonnumber,
+              episodeNumber: episode.episodenumber,
+              episodeName: episode.episodename,
+              firstAired: episode.firstaired,
+              overview: episode.overview
+            });
+          });
+          callback(err, show);
+        });
+      });
+    },
+    // Third: Convert the poster image to Base64, assign it to show.poster and pass the show object to the final callback function.
+    // each image is about 30% larger in the Base64 form
+    function(show, callback) {
+        var url = 'http://thetvdb.com/banners/' + show.poster;
+        request({ url: url, encoding: null }, function(error, response, body) {
+          show.poster = 'data:' + response.headers['content-type'] + ';base64,' + body.toString('base64');
+          callback(error, show);
+        });
+      }
+    ],
+    // Save the show object to database.
+    function(err, show) {
+      if (err) return next(err);
+      show.save(function(err) {
+        if (err) {
+          // Error code 11000 refers to the duplicate key error.
+          if (err.code == 11000) {
+            // 409, HTTP status code to indicate some sort of conflict
+            return res.send(409, { message: show.name + ' already exists.' });
+          }
+          return next(err);
+        }
+        res.send(200);
+      });
+    });
+  });
+  // ========== End of Query and parse the TVDB API ==========
 
 app.get('/api/shows', function(req, res, next) {
   var query = Show.find();
@@ -96,7 +196,7 @@ app.get('/api/shows', function(req, res, next) {
     query.limit(12);
   }
   query.exec(function(err, shows) {
-    if (err) return next(err);
+    if (err) return next(err);a
     res.send(shows);
   });
 });
