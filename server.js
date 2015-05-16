@@ -68,6 +68,8 @@ var Show = mongoose.model('Show', showSchema);
 // connect to the database
 mongoose.connect('mongodb://nixsiow:abcd1234@ds027479.mongolab.com:27479/nixshowtrackrapp');
 
+// ========== End of DB Setup ==========
+
 
 var express = require('express');
 var path = require('path');
@@ -83,6 +85,42 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/shows', function(req, res, next) {
+  var query = Show.find();
+  if (req.query.genre) {
+    query.where({ genre: req.query.genre });
+  } else if (req.query.alphabet) {
+    query.where({ name: new RegExp('^' + '[' + req.query.alphabet + ']', 'i') });
+  } else {
+    query.limit(12);
+  }
+  query.exec(function(err, shows) {
+    if (err) return next(err);
+    res.send(shows);
+  });
+});
+
+app.get('/api/shows/:id', function(req, res, next) {
+  Show.findById(req.params.id, function(err, show) {
+    // If there an error it will be passed on to the error middleware and handled there as well.
+    if (err) return next(err);
+    res.send(show);
+  });
+});
+
+// Common problem when you use HTML5 pushState on the client-side
+// Create a redirect route.
+// Add this route before the error handler
+// * wild card that will match any route that you type.
+app.get('*', function(req, res) {
+  res.redirect('/#' + req.originalUrl);
+});
+
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.send(500, { message: err.message });
+});
 
 app.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
