@@ -7,3 +7,8 @@ Apps Routes:
 3. Login - user login form.
 4. Signup - user signup form.
 5. Add - add a new show form.
+
+
+API : [TheTVDB.com API](http://thetvdb.com/)
+
+[Awesome tutorial](http://sahatyalkabov.com/create-a-tv-show-tracker-using-angularjs-nodejs-and-mongodb/)
