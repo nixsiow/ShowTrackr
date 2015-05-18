@@ -3,3 +3,10 @@ angular.module('MyApp')
   .factory('Show', ['$resource', function($resource) {
     return $resource('/api/shows/:id');
   }]);
+
+  // Show service has following methods.
+  // { 'get':    {method:'GET'},
+  //   'save':   {method:'POST'},
+  //   'query':  {method:'GET', isArray:true},
+  //   'remove': {method:'DELETE'},
+  //   'delete': {method:'DELETE'} };
