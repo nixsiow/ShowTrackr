@@ -69,6 +69,34 @@ var Show = mongoose.model('Show', showSchema);
 mongoose.connect('mongodb://nixsiow:abcd1234@ds027479.mongolab.com:27479/nixshowtrackrapp');
 
 // ========== End of DB Setup ==========
+var session = require('express-session');
+var passport = require('passport');
+// user Passport's LocalStrategy to sign in with username & password.
+var LocalStrategy = require('passport-local').Strategy;
+
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
+
+// below code snippet almost identical with the Passport Configure's page
+// Only, we override username field to be called email field.
+passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, password, done) {
+  User.findOne({ email: email }, function(err, user) {
+    if (err) return done(err);
+    if (!user) return done(null, false);
+    user.comparePassword(password, function(err, isMatch) {
+      if (err) return done(err);
+      if (isMatch) return done(null, user);
+      return done(null, false);
+    });
+  });
+}));
 
 
 var express = require('express');
@@ -90,6 +118,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({ secret: 'keyboard cat'}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Protect our routes from unauthenticated requests.
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) next();
+  else res.send(401);
+}
 
 // ========== Query and parse the TVDB API ==========
 app.post('/api/shows', function(req, res, next) {
@@ -196,7 +233,7 @@ app.get('/api/shows', function(req, res, next) {
     query.limit(12);
   }
   query.exec(function(err, shows) {
-    if (err) return next(err);a
+    if (err) return next(err);
     res.send(shows);
   });
 });
@@ -207,6 +244,42 @@ app.get('/api/shows/:id', function(req, res, next) {
     if (err) return next(err);
     res.send(show);
   });
+});
+
+// When the user tried to sign-in from AngularJS app,
+// a post request is sent with user's email and password as object.
+// this data passed to Passport LocalStrategy.
+// if email is found, password is valid then a new cookie is created with user object, and send back to client.
+app.post('/api/login', passport.authenticate('local'), function(req, res) {
+  res.cookie('user', JSON.stringify(req.user));
+  res.send(req.user);
+});
+
+// [FIX THIS} This is simplified version without input validation.
+app.post('/api/signup', function(req, res, next) {
+  var user = new User({
+    email: req.body.email,
+    password: req.body.password
+  });
+  user.save(function(err) {
+    if (err) return next(err);
+    res.send(200);
+  });
+});
+
+
+// Passport expose a logout() function on req object that can be called from any route which terminates a login session.
+// Invoking logout() will remove req.user property and clear the login session.
+app.get('/api/logout', function(req, res, next) {
+  req.logout();
+  res.send(200);
+});
+
+app.use(function(req, res, next) {
+  if (req.user) {
+    res.cookie('user', JSON.stringify(req.user));
+  }
+  next();
 });
 
 // Common problem when you use HTML5 pushState on the client-side
