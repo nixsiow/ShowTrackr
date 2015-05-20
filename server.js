@@ -162,14 +162,20 @@ var request = require('request');
 var xml2js = require('xml2js');
 var _ = require('lodash');
 
+// gzip compression.
+var compress = require('compression');
+
 var app = express();
 
 app.set('port', process.env.PORT || 3000);
+app.use(compress());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// Static assets caching
+// 86400000 milliseconds is equivalent to 1 day.
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: 86400000 }));
 app.use(session({ secret: 'keyboard cat'}));
 app.use(passport.initialize());
 app.use(passport.session());
