@@ -34,7 +34,7 @@ REST API with Express, authentication and signup process with Passport, create a
 
 ---
 #### Optimization - To Do List
-** DONE: **
+**DONE:**
 * Concatenate and minify the scripts
 * Minify the stylesheet
 * Cache AngularJS templates
@@ -42,19 +42,18 @@ REST API with Express, authentication and signup process with Passport, create a
 * Enable gzip compression
 * Enable static assets caching
 
-** To be working on: **
+**To be working on:**
 * not necessary for us to retrieve information about every single episode of every show because we don’t see it until we view the detail page of that show.
 
 * Currently storing images as Base64 strings that are are fairly large in size and resolution (680 x 1000), not cached, not optimized.
 
 * Put Redis database in front of the MongoDB for caching?  Couchbase database which seems to combine the best of both worlds. Couchbase seems to replace Redis, MongoDB and Riak all togther.
 
-** API : [TheTVDB.com API](http://thetvdb.com/) **
+**API : [TheTVDB.com API](http://thetvdb.com/)**
 
 ---
-
 ->
-** Origin: **
+**Origin:**
 [Awesome Author](https://github.com/sahat) |
 [Awesome tutorial](http://sahatyalkabov.com/create-a-tv-show-tracker-using-angularjs-nodejs-and-mongodb/) |
 [Github repo](https://github.com/sahat/tvshow-tracker) <-
