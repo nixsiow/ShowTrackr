@@ -1,14 +1,14 @@
-ShowTrackr - A TV show tracker using AngularJS, NodeJS and Mongodb.
+## ShowTrackr - A TV show tracker using AngularJS, NodeJS and Mongodb.
 
 ---
-AngularJS + Node + Gulp + Mongoose + Passport Authentication + TVDB API
+### AngularJS + Node + Gulp + Mongoose + Passport Authentication + TVDB API
 
 REST API with Express, authentication and signup process with Passport, create and retrieve data from MongoDB using Mongoose. The front-end will be built using AngularJS and Bootstrap Sass. The last step involves using gulp.js to optimize your static assets.
 
 ---
-[Demo](http://nixsiow.com/showtrackr)
+[Demo](https://showtrackrdemo.herokuapp.com/)
 
-Apps Routes:
+#### Apps Routes:
 * Home - display a list of popular shows.
 * Detail - information about one particular TV show.
 * Login - user login form.
@@ -16,7 +16,7 @@ Apps Routes:
 * Add - add a new show form.
 
 ---
-To Do:
+#### To Do:
 * User profile page with a list of subscribed shows
 * Dynamically update page <title> on each route
 * Create a personalized calendar view with subscribed shows
@@ -33,8 +33,8 @@ To Do:
 * Live validation of email availability during user signup
 
 ---
-Optimization - To Do List
-DONE:
+#### Optimization - To Do List
+** DONE: **
 * Concatenate and minify the scripts
 * Minify the stylesheet
 * Cache AngularJS templates
@@ -42,7 +42,7 @@ DONE:
 * Enable gzip compression
 * Enable static assets caching
 
-To be working on:
+** To be working on: **
 * not necessary for us to retrieve information about every single episode of every show because we don’t see it until we view the detail page of that show.
 
 * Currently storing images as Base64 strings that are are fairly large in size and resolution (680 x 1000), not cached, not optimized.
@@ -52,6 +52,7 @@ To be working on:
 API : [TheTVDB.com API](http://thetvdb.com/)
 ---
 
-[Awesome Author](https://github.com/sahat)
-[Awesome tutorial](http://sahatyalkabov.com/create-a-tv-show-tracker-using-angularjs-nodejs-and-mongodb/)
+** Origin: **
+[Awesome Author](https://github.com/sahat) |
+[Awesome tutorial](http://sahatyalkabov.com/create-a-tv-show-tracker-using-angularjs-nodejs-and-mongodb/) |
 [Github repo](https://github.com/sahat/tvshow-tracker)
