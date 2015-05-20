@@ -98,6 +98,58 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, passw
   });
 }));
 
+// Agenda is a job scheduling library for Node.js
+var agenda = require('agenda')({ db: {address: 'mongodb://nixsiow:abcd1234@ds027479.mongolab.com:27479/nixshowtrackrapp'} });
+var sugar = require('sugar');
+var nodemailer = require('nodemailer');
+
+// define an agenda job called send email alert.
+agenda.define('send email alert', function(job, done) {
+  // what should happen when send email alert job is dispatched.
+  // When this job runs, name of the show will be passed in as an optional data object.
+  // Since we are not storing the entire user document in subscribers array (only references),
+  // we have to use Mongoose’s populate method.
+  Show.findOne({ name: job.attrs.data }).populate('subscribers').exec(function(err, show) {
+    var emails = show.subscribers.map(function(user) {
+      return user.email;
+    });
+
+    var upcomingEpisode = show.episodes.filter(function(episode) {
+      return new Date(episode.firstAired) > new Date();
+    })[0];
+
+    var smtpTransport = nodemailer.createTransport('SMTP', {
+      service: 'SendGrid',
+      auth: { user: 'hslogin', pass: 'hspassword00' }
+    });
+
+    // standard Nodemailer boilerplate for sending emails.
+    var mailOptions = {
+      from: 'Fred Foo ✔ <foo@blurdybloop.com>',
+      to: emails.join(','),
+      subject: show.name + ' is starting soon!',
+      text: show.name + ' starts in less than 2 hours on ' + show.network + '.\n\n' +
+        'Episode ' + upcomingEpisode.episodeNumber + ' Overview\n\n' + upcomingEpisode.overview
+    };
+
+    smtpTransport.sendMail(mailOptions, function(error, response) {
+      console.log('Message sent: ' + response.message);
+      smtpTransport.close();
+      done();
+    });
+  });
+});
+
+agenda.start();
+
+agenda.on('start', function(job) {
+  console.log("Job %s starting", job.attrs.name);
+});
+
+agenda.on('complete', function(job) {
+  console.log("Job %s finished", job.attrs.name);
+});
+
 
 var express = require('express');
 var path = require('path');
@@ -217,6 +269,10 @@ app.post('/api/shows', function(req, res, next) {
           }
           return next(err);
         }
+        // It will start the agenda task whenever a new show is added to the database.
+        //  Sugar overrides built-in objects such as Date to provide us with extra functionality.
+        var alertDate = Date.create('Next ' + show.airsDayOfWeek + ' at ' + show.airsTime).rewind({ hour: 2});
+        agenda.schedule(alertDate, 'send email alert', show.name).repeatEvery('1 week');
         res.send(200);
       });
     });
@@ -281,6 +337,32 @@ app.use(function(req, res, next) {
   }
   next();
 });
+
+// two routes for subscribing and unsibscribing to/from a show
+//  ensureAuthenticated middleware here to prevent unauthenticated users from accessing these route handlers.
+app.post('/api/subscribe', ensureAuthenticated, function(req, res, next) {
+  Show.findById(req.body.showId, function(err, show) {
+    if (err) return next(err);
+    show.subscribers.push(req.user.id);
+    show.save(function(err) {
+      if (err) return next(err);
+      res.send(200);
+    });
+  });
+});
+
+app.post('/api/unsubscribe', ensureAuthenticated, function(req, res, next) {
+  Show.findById(req.body.showId, function(err, show) {
+    if (err) return next(err);
+    var index = show.subscribers.indexOf(req.user.id);
+    show.subscribers.splice(index, 1);
+    show.save(function(err) {
+      if (err) return next(err);
+      res.send(200);
+    });
+  });
+});
+
 
 // Common problem when you use HTML5 pushState on the client-side
 // Create a redirect route.
