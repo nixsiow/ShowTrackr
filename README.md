@@ -6,7 +6,7 @@
 REST API with Express, authentication and signup process with Passport, create and retrieve data from MongoDB using Mongoose. The front-end will be built using AngularJS and Bootstrap Sass. The last step involves using gulp.js to optimize your static assets.
 
 ---
-[Demo](https://showtrackrdemo.herokuapp.com/)
+[Demo](http://showtrackr.nixsiow.com)
 
 #### Apps Routes:
 * Home - display a list of popular shows.
