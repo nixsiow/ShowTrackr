@@ -18,7 +18,7 @@ REST API with Express, authentication and signup process with Passport, create a
 ---
 #### To Do:
 * User profile page with a list of subscribed shows
-* Dynamically update page <title> on each route
+* Dynamically update page &lt;title&gt; on each route
 * Create a personalized calendar view with subscribed shows
 * Create a calendar view that displays every show (time, date, network, episode overview)
 * Display a show’s episodes in Bootstrap Tabs, grouped by seasons
@@ -49,10 +49,12 @@ REST API with Express, authentication and signup process with Passport, create a
 
 * Put Redis database in front of the MongoDB for caching?  Couchbase database which seems to combine the best of both worlds. Couchbase seems to replace Redis, MongoDB and Riak all togther.
 
-API : [TheTVDB.com API](http://thetvdb.com/)
+** API : [TheTVDB.com API](http://thetvdb.com/) **
+
 ---
 
+->
 ** Origin: **
 [Awesome Author](https://github.com/sahat) |
 [Awesome tutorial](http://sahatyalkabov.com/create-a-tv-show-tracker-using-angularjs-nodejs-and-mongodb/) |
-[Github repo](https://github.com/sahat/tvshow-tracker)
+[Github repo](https://github.com/sahat/tvshow-tracker) <-
