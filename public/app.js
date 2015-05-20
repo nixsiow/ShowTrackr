@@ -11,7 +11,7 @@ angular.module('MyApp', ['ngCookies', 'ngResource', 'ngMessages', 'ngRoute', 'mg
         controller: 'MainCtrl'
       })
       .when('/shows/:id', {
-        templateUrl: 'views/details.html',
+        templateUrl: 'views/detail.html',
         controller: 'DetailCtrl'
       })
       .when('/login', {
