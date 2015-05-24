@@ -1,3 +1,5 @@
+[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+
 ## ShowTrackr - A TV show tracker using AngularJS, NodeJS and Mongodb.
 
 ---
